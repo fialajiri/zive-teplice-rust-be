@@ -1,0 +1,9 @@
+CREATE TABLE images (
+    id SERIAL PRIMARY KEY,
+    image_url TEXT NOT NULL,
+    image_key TEXT NOT NULL,
+    width INT NOT NULL,
+    height INT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
