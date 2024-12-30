@@ -5,7 +5,7 @@ CREATE TABLE users (
     password VARCHAR(128) NOT NULL,
     phone_number VARCHAR(64) NOT NULL,
     description TEXT,
-    type VARCHAR(64) NOT NULL,
+    user_type VARCHAR(64) NOT NULL,
     role VARCHAR(64) NOT NULL,
     event_id INTEGER REFERENCES events(id),
     request VARCHAR(64) NOT NULL,

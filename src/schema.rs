@@ -70,9 +70,8 @@ diesel::table! {
         #[max_length = 64]
         phone_number -> Varchar,
         description -> Nullable<Text>,
-        #[sql_name = "type"]
         #[max_length = 64]
-        type_ -> Varchar,
+        user_type -> Varchar,
         #[max_length = 64]
         role -> Varchar,
         event_id -> Nullable<Int4>,
