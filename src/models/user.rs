@@ -80,18 +80,114 @@ impl ToSql<Text, Pg> for UserRole {
     }
 }
 
-#[derive(AsExpression, Debug, FromSqlRow)]
+#[derive(AsExpression, Debug, FromSqlRow, Serialize, Deserialize)]
 #[diesel(sql_type = Text)]
 pub enum UserType {
-    Admin,
-    User,
+    Seller,
+    Artist,
 }
 
-#[derive(AsExpression, Debug, FromSqlRow)]
+impl ToString for UserType {
+    fn to_string(&self) -> String {
+        match self {
+            UserType::Seller => String::from("seller"),
+            UserType::Artist => String::from("artist"),
+        }
+    }
+}
+
+impl FromStr for UserType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "seller" => Ok(UserType::Seller),
+            "artist" => Ok(UserType::Artist),
+            _ => Err(()),
+        }
+    }
+}
+
+impl FromSql<Text, Pg> for UserType {
+    fn from_sql(value: PgValue) -> diesel::deserialize::Result<Self> {
+        match value.as_bytes() {
+            b"seller" => Ok(UserType::Seller),
+            b"artist" => Ok(UserType::Artist),
+            _ => Ok(UserType::Seller),
+        }
+    }
+}
+
+impl ToSql<Text, Pg> for UserType {
+    fn to_sql<'b>(
+        &'b self,
+        out: &mut diesel::serialize::Output<'b, '_, Pg>,
+    ) -> diesel::serialize::Result {
+        match self {
+            UserType::Seller => out.write_all(b"seller")?,
+            UserType::Artist => out.write_all(b"artist")?,
+        }
+        Ok(diesel::serialize::IsNull::No)
+    }
+}
+
+#[derive(AsExpression, Debug, FromSqlRow, Serialize, Deserialize)]
 #[diesel(sql_type = Text)]
 pub enum RequestStatus {
     NotSend,
     Pending,
-    Approved,
+    Confirmed,
     Rejected,
+}
+
+impl ToString for RequestStatus {
+    fn to_string(&self) -> String {
+        match self {
+            RequestStatus::NotSend => String::from("notsend"),
+            RequestStatus::Pending => String::from("pending"),
+            RequestStatus::Confirmed => String::from("confirmed"),
+            RequestStatus::Rejected => String::from("rejected"),
+        }
+    }
+}
+
+impl FromStr for RequestStatus {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "notsend" => Ok(RequestStatus::NotSend),
+            "pending" => Ok(RequestStatus::Pending),
+            "confirmed" => Ok(RequestStatus::Confirmed),
+            "rejected" => Ok(RequestStatus::Rejected),
+            _ => Err(()),
+        }
+    }
+}
+
+impl FromSql<Text, Pg> for RequestStatus {
+    fn from_sql(value: PgValue) -> diesel::deserialize::Result<Self> {
+        match value.as_bytes() {
+            b"notsend" => Ok(RequestStatus::NotSend),
+            b"pending" => Ok(RequestStatus::Pending),
+            b"confirmed" => Ok(RequestStatus::Confirmed),
+            b"rejected" => Ok(RequestStatus::Rejected),
+            _ => Ok(RequestStatus::NotSend),
+        }
+    }
+}
+
+impl ToSql<Text, Pg> for RequestStatus {
+    fn to_sql<'b>(
+        &'b self,
+        out: &mut diesel::serialize::Output<'b, '_, Pg>,
+    ) -> diesel::serialize::Result {
+        match self {
+            RequestStatus::NotSend => out.write_all(b"notsend")?,
+            RequestStatus::Pending => out.write_all(b"pending")?,
+            RequestStatus::Confirmed => out.write_all(b"confirmed")?,
+            RequestStatus::Rejected => out.write_all(b"rejected")?,
+        }
+        Ok(diesel::serialize::IsNull::No)
+    }
 }

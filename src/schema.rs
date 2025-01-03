@@ -7,10 +7,6 @@ diesel::table! {
         title -> Varchar,
         year -> Int4,
         is_current -> Bool,
-        #[max_length = 128]
-        program_title -> Nullable<Varchar>,
-        program_text -> Nullable<Text>,
-        image_id -> Nullable<Int4>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }
@@ -59,6 +55,19 @@ diesel::table! {
 }
 
 diesel::table! {
+    programs (id) {
+        id -> Int4,
+        #[max_length = 128]
+        title -> Varchar,
+        text -> Text,
+        event_id -> Int4,
+        image_id -> Int4,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     users (id) {
         id -> Int4,
         #[max_length = 64]
@@ -83,11 +92,12 @@ diesel::table! {
     }
 }
 
-diesel::joinable!(events -> images (image_id));
 diesel::joinable!(galleries -> images (featured_image_id));
 diesel::joinable!(gallery_images -> galleries (gallery_id));
 diesel::joinable!(gallery_images -> images (image_id));
 diesel::joinable!(news -> images (image_id));
+diesel::joinable!(programs -> events (event_id));
+diesel::joinable!(programs -> images (image_id));
 diesel::joinable!(users -> events (event_id));
 diesel::joinable!(users -> images (image_id));
 
@@ -97,5 +107,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     gallery_images,
     images,
     news,
+    programs,
     users,
 );
