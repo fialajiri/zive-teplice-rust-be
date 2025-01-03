@@ -17,4 +17,8 @@ impl EventRepository {
             .get_result(c)
             .await
     }
+
+    pub async fn delete(c: &mut AsyncPgConnection, id: i32) -> QueryResult<usize> {
+        diesel::delete(events::table.find(id)).execute(c).await
+    }
 }

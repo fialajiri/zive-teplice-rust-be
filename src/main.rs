@@ -26,8 +26,9 @@ async fn main() {
     let _ = rocket::build()    
         .mount("/",
             rocket::routes![               
-                rocket_routes::events::get_events,            
+                rocket_routes::events::get_event,            
                 rocket_routes::events::create_event,
+                rocket_routes::events::delete_event,
                 rocket_routes::programs::get_programs_for_event,
                 rocket_routes::programs::create_program,
             ]
