@@ -4,7 +4,7 @@ use serde_json::{json, Value};
 pub mod common;
 
 #[test]
-fn test_create_crate() {
+fn test_create_event() {
     let client = Client::new();
     
 
@@ -51,6 +51,40 @@ fn test_get_event() {
     common::delete_test_event(&client, event);
 
 
+}
+
+#[test]
+fn test_update_event() {
+    let client = Client::new();
+    let event = common::create_test_event(&client);
+
+    let response = client
+        .put(format!("{}/events/{}", common::APP_HOST, event["id"]))
+        .json(&json!({
+            "id": event["id"],
+            "title": "My Updated Event",
+            "year": 2026,
+            "is_current": false,          
+        }))
+        .send()
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let event: Value = response.json().unwrap();
+    assert_eq!(
+        event,
+        json!({
+            "id": event["id"],
+            "title": "My Updated Event",
+            "year": 2026,
+            "is_current": false,
+            "created_at": event["created_at"],
+            "updated_at": event["updated_at"]
+        })
+    );
+
+    common::delete_test_event(&client, event);
 }
 
 #[test]

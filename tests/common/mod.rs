@@ -28,3 +28,12 @@ pub fn delete_test_event(client: &Client, event: Value) {
 
     assert_eq!(response.status(), StatusCode::NO_CONTENT);
 }
+
+pub fn delete_test_program(client: &Client, program: Value) {
+    let response = client
+        .delete(format!("{}/programs/{}", APP_HOST, program["id"]))
+        .send()
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::NO_CONTENT);
+}

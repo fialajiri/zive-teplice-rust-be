@@ -5,7 +5,7 @@ use crate::repositories::program::ProgramRepository;
 
 use super::DbConn;
 
-use rocket::response::status::{self, Custom};
+use rocket::response::status::{self, Custom, NoContent};
 use rocket::http::ContentType;
 use rocket::Data;
 use rocket::serde::json::{json, Value};
@@ -14,11 +14,17 @@ use rocket_multipart_form_data::{mime, MultipartFormData, MultipartFormDataField
 
 #[rocket::get("/programs/<event_id>")]
 pub async fn get_programs_for_event<'a>(mut db: Connection<DbConn>, event_id: i32) -> Result<Value, Custom<Value>> {
-    ProgramRepository::find_programs_for_event(&mut db, event_id).await
+    ProgramRepository::find_program_for_event(&mut db, event_id).await
         .map(|programs| json!(programs))
         .map_err(|e| server_error(e.into()))
 }
 
+#[rocket::delete("/programs/<id>")]
+pub async fn delete_program<'a>(mut db: Connection<DbConn>, id: i32) -> Result<NoContent, Custom<Value>> {
+    ProgramRepository::delete(&mut db, id).await
+        .map(|_| NoContent)
+        .map_err(|e| server_error(e.into()))
+}
 
 #[rocket::post("/programs", format = "multipart/form-data", data = "<data>")]
 pub async fn create_program<'a>(mut db: Connection<DbConn>, content_type: &'a ContentType,
@@ -70,24 +76,6 @@ pub async fn create_program<'a>(mut db: Connection<DbConn>, content_type: &'a Co
         event_id,
         image_id: image.id,
     };
-
-    // 1) Determine the final filename
-    // let filename = image_field
-    //     .file_name
-    //     .clone()
-    //     .unwrap_or_else(|| String::from("unnamed"));
-
-    // println!("Filename: {}", filename);
-
-    // let local_path = format!("uploads/{}", filename.to_string());
-    // let mut file = File::create(&local_path)
-    //     .await
-    //     .map_err(|e| status::Custom(rocket::http::Status::InternalServerError, e.to_string().into()))?;
-    // file.write_all(&image_field.raw)
-    //     .await
-    //     .map_err(|e| status::Custom(rocket::http::Status::InternalServerError, e.to_string().into()))?;
-
-    // let image_id = 215;
 
     ProgramRepository::create_program_for_event(&mut db, new_program).await
         .map(|event| json!(event))

@@ -21,7 +21,7 @@ impl ProgramRepository {
             .await
     }
 
-    pub async fn find_programs_for_event(
+    pub async fn find_program_for_event(
         c: &mut AsyncPgConnection,
         event_id: i32,
     ) -> QueryResult<Vec<Program>> {
@@ -29,5 +29,16 @@ impl ProgramRepository {
             .filter(programs::event_id.eq(event_id))
             .load(c)
             .await
+    }
+
+    pub async fn update(c: &mut AsyncPgConnection, id: i32, program: Program) -> QueryResult<Program> {
+        diesel::update(programs::table.find(id))
+            .set(program)
+            .get_result(c)
+            .await
+    }
+
+    pub async fn delete(c: &mut AsyncPgConnection, id: i32) -> QueryResult<usize> {
+        diesel::delete(programs::table.find(id)).execute(c).await
     }
 }
