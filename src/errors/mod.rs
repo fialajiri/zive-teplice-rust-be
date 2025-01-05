@@ -15,5 +15,5 @@ pub fn not_found_error(e: Box<dyn Error>) -> Custom<Value> {
 
 pub fn bad_request_error(e: Box<dyn Error>) -> Custom<Value> {
     rocket::error!("{}", e);
-    Custom(Status::BadRequest, json!("Bad request"))
+    Custom(Status::BadRequest, json!(format!("Bad request: {}", e)))
 }

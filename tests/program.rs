@@ -10,7 +10,6 @@ pub mod common;
 #[test]
 fn test_create_program() {
     let client = Client::new();
-
     let event = common::create_test_event(&client);
 
     let mut file = File::open("./tests/assets/test_image.jpg").expect("Failed to open file");
@@ -40,9 +39,7 @@ fn test_create_program() {
     assert_eq!(response.status(), StatusCode::OK, "Response was not 200 OK");
 
     // Deserialize JSON
-    let program: Value = response.json().expect("Failed to parse JSON response");
-    println!("create_program response: {:#}", program);
-    println!("event: {:#}", event);
+    let program: Value = response.json().expect("Failed to parse JSON response");   
 
     assert_eq!(
         program,

@@ -6,6 +6,7 @@ pub mod rocket_routes;
 pub mod models;
 pub mod repositories;
 pub mod errors;
+pub mod utils;
 mod schema;
 
 #[rocket::main]

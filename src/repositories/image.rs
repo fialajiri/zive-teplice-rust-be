@@ -2,18 +2,17 @@ pub struct ImageRepository;
 
 use diesel::prelude::*;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
-use rocket_multipart_form_data::RawField;
 
 use crate::models::image::{Image, NewImage};
 use crate::schema::images;
 
 impl ImageRepository {
-    pub async fn save_image(c: &mut AsyncPgConnection, raw_field: &RawField) -> QueryResult<Image> {
-        let (width, height) = Self::get_image_dimensions(&raw_field.raw)
+    pub async fn save_image(c: &mut AsyncPgConnection, image_field: Vec<u8>) -> QueryResult<Image> {
+        let (width, height) = Self::get_image_dimensions(&image_field)
             .await
             .expect("Failed to get image dimensions");
 
-        let (image_url, image_key) = Self::upload_to_s3(&raw_field.raw)
+        let (image_url, image_key) = Self::upload_to_s3(&image_field)
             .await
             .expect("Failed to upload image to s3");
 

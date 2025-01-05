@@ -7,7 +7,8 @@ use crate::schema::news;
 
 
 
-#[derive(Queryable, Serialize, Deserialize, Debug)]
+#[derive(AsChangeset, Queryable, Serialize, Deserialize, Debug)]
+#[diesel(table_name = news)]
 pub struct News {
     pub id: i32,
     pub title: String,
