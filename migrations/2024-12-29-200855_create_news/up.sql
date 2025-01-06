@@ -2,7 +2,7 @@ CREATE TABLE news (
     id SERIAL PRIMARY KEY,    
     title VARCHAR(256) NOT NULL,
     message TEXT NOT NULL,
-    image_id INTEGER REFERENCES images(id),
+    image_id INTEGER REFERENCES images(id) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

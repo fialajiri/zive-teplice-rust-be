@@ -29,6 +29,12 @@ impl ImageRepository {
             .await
     }
 
+    pub async fn delete_image(c: &mut AsyncPgConnection, id: i32) -> QueryResult<usize> {
+        //  Delete the image from S3
+
+        diesel::delete(images::table.find(id)).execute(c).await
+    }
+
     async fn get_image_dimensions(raw_data: &[u8]) -> Result<(u32, u32), String> {        
         let img =
             image::load_from_memory(raw_data).map_err(|e| format!("Cannot decode image: {}", e))?;

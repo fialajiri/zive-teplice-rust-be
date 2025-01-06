@@ -20,7 +20,7 @@ pub struct News {
 
 #[derive(Insertable, Deserialize)]
 #[diesel(table_name = news)]
-pub struct NewNew {
+pub struct NewNews {
     pub title: String,
     pub message: String,
     pub image_id: i32,

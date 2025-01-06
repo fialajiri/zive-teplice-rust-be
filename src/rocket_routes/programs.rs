@@ -1,12 +1,11 @@
 use crate::errors::server_error;
-use crate::models::program::{NewProgram, Program, UpdateProgram};
+use crate::models::program::{NewProgram, UpdateProgram};
 use crate::repositories::image::ImageRepository;
 use crate::repositories::program::ProgramRepository;
 use crate::utils::program_form_config::{ProgramFormConfig, ProgramFormData};
 
 use super::DbConn;
 
-use diesel::dsl::Update;
 use rocket::http::ContentType;
 use rocket::response::status::{Custom, NoContent};
 use rocket::serde::json::{json, Value};

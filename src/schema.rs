@@ -48,7 +48,7 @@ diesel::table! {
         #[max_length = 256]
         title -> Varchar,
         message -> Text,
-        image_id -> Nullable<Int4>,
+        image_id -> Int4,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }
