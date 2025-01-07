@@ -1,3 +1,4 @@
 /target
 
 docker-compose.dev.yml
+nodemon.json

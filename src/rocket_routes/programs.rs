@@ -42,7 +42,7 @@ pub async fn create_program<'a>(
 ) -> Result<Value, Custom<Value>> {
     let config = ProgramFormConfig::new();
 
-    let form_data = ProgramFormData::from_multipart(content_type, data, &config).await?;
+    let form_data = ProgramFormData::from_multipart(content_type, data, &config).await?;   
 
     let image = ImageRepository::save_image(&mut db, form_data.image_field)
         .await
