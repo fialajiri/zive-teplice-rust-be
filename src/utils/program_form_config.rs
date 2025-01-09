@@ -1,13 +1,21 @@
 use rocket::http::ContentType;
 use rocket::{response::status::Custom, Data};
+use rocket_multipart_form_data::mime::Mime;
 use rocket_multipart_form_data::{
-    mime, MultipartFormData, MultipartFormDataField, MultipartFormDataOptions,
+    mime, MultipartFormData, MultipartFormDataField, MultipartFormDataOptions, RawField,
 };
 use serde_json::Value;
 
 use crate::errors::bad_request_error;
 
 const MAX_IMAGE_SIZE: u64 = 30 * 1024 * 1024; // 30 MB
+
+#[derive(Debug)]
+pub struct ImageFormData {
+    pub raw_data: Vec<u8>,
+    pub file_name: Option<String>,
+    pub content_type: Option<Mime>,
+}
 
 pub struct ProgramFormConfig<'a> {
     phantom: std::marker::PhantomData<&'a ()>,
@@ -39,7 +47,7 @@ pub struct ProgramFormData {
     pub title: String,
     pub text: String,
     pub event_id: i32,
-    pub image_field: Vec<u8>,
+    pub image_field: ImageFormData,
 }
 
 impl ProgramFormData {
@@ -82,11 +90,22 @@ impl ProgramFormData {
             .map_err(|e| bad_request_error(format!("Invalid event_id: {}", e).into()))
     }
 
-    fn get_image_field(form: &MultipartFormData) -> Result<Vec<u8>, Custom<Value>> {
-        form.raw
+    fn get_image_field(form: &MultipartFormData) -> Result<ImageFormData, Custom<Value>> {
+        let field = form
+            .raw
             .get("image")
             .and_then(|fields| fields.first())
-            .map(|field| field.raw.clone())
-            .ok_or(bad_request_error("image".into()))
+            .ok_or_else(|| bad_request_error("image".into()))?;
+    
+        Self::get_image_form_data(field)
+    }
+    
+    // Helper to transform a `RawField` into your `ImageFormData`
+    fn get_image_form_data(field: &RawField) -> Result<ImageFormData, Custom<Value>> {
+        Ok(ImageFormData {
+            raw_data: field.raw.clone(),
+            file_name: field.file_name.clone(),
+            content_type: field.content_type.clone(),
+        })
     }
 }

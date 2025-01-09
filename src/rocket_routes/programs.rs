@@ -42,9 +42,12 @@ pub async fn create_program<'a>(
 ) -> Result<Value, Custom<Value>> {
     let config = ProgramFormConfig::new();
 
-    let form_data = ProgramFormData::from_multipart(content_type, data, &config).await?;   
+    let form_data = ProgramFormData::from_multipart(content_type, data, &config).await?;
 
-    let image = ImageRepository::save_image(&mut db, form_data.image_field)
+    let image = ImageRepository::new()
+        .await
+        .map_err(|e| server_error(e.into()))?
+        .save_image(&mut db, form_data.image_field)
         .await
         .map_err(|e| server_error(e.into()))?;
 
@@ -72,15 +75,20 @@ pub async fn update_program<'a>(
 
     let form_data = ProgramFormData::from_multipart(content_type, data, &config).await?;
 
-    // erase the old image
-
-    let image = ImageRepository::save_image(&mut db, form_data.image_field)
+    let repo = ImageRepository::new()
         .await
         .map_err(|e| server_error(e.into()))?;
 
-    let update_program = UpdateProgram {        
+    // erase the old image
+
+    let image = repo
+        .save_image(&mut db, form_data.image_field)
+        .await
+        .map_err(|e| server_error(e.into()))?;
+
+    let update_program = UpdateProgram {
         title: Some(form_data.title),
-        text: Some(form_data.text),        
+        text: Some(form_data.text),
         image_id: Some(image.id),
     };
 

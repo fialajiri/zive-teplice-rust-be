@@ -1,30 +1,43 @@
-pub struct ImageRepository;
-
-use aws_config::{BehaviorVersion, Region};
-use aws_sdk_s3::config::Credentials;
-use aws_sdk_s3::primitives::ByteStream;
-use aws_sdk_s3::types::ObjectCannedAcl;
 use diesel::prelude::*;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 
 use crate::models::image::{Image, NewImage};
 use crate::schema::images;
+use crate::utils::program_form_config::ImageFormData;
+use crate::utils::s3_storage::S3Storage;
 
-use aws_sdk_s3::{Client as S3Client, Config};
+
+pub struct ImageRepository {
+    s3_storage: S3Storage,
+}
 
 impl ImageRepository {
-    pub async fn save_image(c: &mut AsyncPgConnection, image_field: Vec<u8>) -> QueryResult<Image> {
-        let (width, height) = Self::get_image_dimensions(&image_field)
+    pub async fn new() -> Result<Self, String> {
+        let s3_storage = S3Storage::new().await?;
+        Ok(Self { s3_storage })
+    }
+
+    pub async fn save_image(
+        &self,
+        c: &mut AsyncPgConnection,
+        image_field: ImageFormData,       
+    ) -> QueryResult<Image> {
+        let (width, height) = Self::get_image_dimensions(&image_field.raw_data)
             .await
             .expect("Failed to get image dimensions");
 
-        let (image_url, image_key) = Self::upload_to_s3(&image_field)
+        let filename = image_field.file_name.unwrap_or_else(|| format!("image_{}.jpg", chrono::Utc::now().timestamp()));
+
+
+        let uploaded = self
+            .s3_storage
+            .upload_image(&image_field.raw_data, &filename)
             .await
             .expect("Failed to upload image to s3");
 
         let new_image = NewImage {
-            image_url,
-            image_key,
+            image_url: uploaded.url,
+            image_key: uploaded.key,
             width: width as i32,
             height: height as i32,
         };
@@ -35,9 +48,60 @@ impl ImageRepository {
             .await
     }
 
-    pub async fn delete_image(c: &mut AsyncPgConnection, id: i32) -> QueryResult<usize> {
-        //  Delete the image from S3
+    pub async fn save_multiple_images(
+        &self,
+        images: &[ImageFormData],
+    ) -> Result<Vec<Image>, String> {
+        // Convert ImageFormData to the format expected by S3Storage
+        let uploads: Vec<(&[u8], String)> = images
+            .iter()
+            .map(|image| {
+                let filename = image.file_name
+                    .clone()
+                    .unwrap_or_else(|| format!("image_{}.jpg", chrono::Utc::now().timestamp()));
+                (&image.raw_data[..], filename)
+            })
+            .collect();
+    
+        // Upload all images to S3 concurrently
+        let upload_result = self.s3_storage.upload_multiple_images(uploads).await;
+    
+        println!("Successfully uploaded {} files", upload_result.successful.len());
+        if !upload_result.failed.is_empty() {
+            println!("Failed to upload {} files", upload_result.failed.len());
+            for (filename, error) in &upload_result.failed {
+                println!("Failed to upload {}: {}", filename, error);
+            }
+        }
+    
+        // Mock saving to database - just create Image structs
+        let mock_images: Vec<Image> = upload_result.successful
+            .into_iter()
+            .map(|uploaded| Image {
+                id: rand::random::<i32>(), // Mock ID
+                image_url: uploaded.url,
+                image_key: uploaded.key,
+                width: 800,  // Mock dimensions
+                height: 600,
+                created_at: chrono::Utc::now().naive_utc(),
+                updated_at: chrono::Utc::now().naive_utc(),
+            })
+            .collect();
+    
+        Ok(mock_images)
+    }
 
+    pub async fn delete_image(&self, c: &mut AsyncPgConnection, id: i32) -> QueryResult<usize> {
+        // First get the image key from database
+        let image = images::table.find(id).first::<Image>(c).await?;
+        
+        // Delete from S3
+        self.s3_storage
+            .delete_image(&image.image_key)
+            .await
+            .expect("Failed to delete image from S3");
+
+        // Delete from database
         diesel::delete(images::table.find(id)).execute(c).await
     }
 
@@ -45,53 +109,5 @@ impl ImageRepository {
         let img =
             image::load_from_memory(raw_data).map_err(|e| format!("Cannot decode image: {}", e))?;
         Ok((img.width(), img.height()))
-    }
-
-    async fn upload_to_s3(raw_data: &[u8]) -> Result<(String, String), String> {
-        let bucket = std::env::var("AWS_BUCKET_NAME")
-            .map_err(|e| format!("AWS_BUCKET_NAME not set: {}", e))?;
-        let region = std::env::var("AWS_BUCKET_REGION")
-            .map_err(|e| format!("AWS_BUCKET_REGION not set: {}", e))?;
-        let access_key = std::env::var("AWS_ACCESS_KEY_ID")
-            .map_err(|e| format!("AWS_ACCESS_KEY_ID not set: {}", e))?;
-        let secret_key = std::env::var("AWS_SECRET_ACCESS_KEY")
-            .map_err(|e| format!("AWS_SECRET_ACCESS_KEY not set: {}", e))?;
-
-        let shared_config = Config::builder()
-            .behavior_version(BehaviorVersion::latest())
-            .region(Region::new(region.clone()))
-            .credentials_provider(Credentials::new(
-                access_key, secret_key, None, None, "example",
-            ))
-            .build();
-
-        // Create S3 client
-        let client = S3Client::from_conf(shared_config);
-
-        println!("Uploading image to S3");       
-
-        // Convert raw data to ByteStream
-        let byte_stream = ByteStream::from(raw_data.to_vec());
-
-        let key = format!("uploads/{}.{}", "test2", "jpg");
-
-        // Upload to S3
-        match client
-            .put_object()
-            .bucket(&bucket)
-            .key(&key)
-            .body(byte_stream)
-            .content_type("image/jpg")
-            .acl(ObjectCannedAcl::PublicRead)  
-            .send()
-            .await
-        {
-            Ok(_) => {
-                // Construct the S3 URL
-                let image_url = format!("https://{}.s3.{}.amazonaws.com/{}", bucket, region, key);
-                Ok((image_url, key))
-            }
-            Err(e) => Err(e.to_string()),
-        }
     }
 }
