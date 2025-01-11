@@ -11,6 +11,10 @@ impl NewsRepository {
         news::table.find(id).get_result(c).await
     }
 
+    pub async fn all(c: &mut AsyncPgConnection) -> QueryResult<Vec<News>> {
+        news::table.load(c).await
+    }
+
     pub async fn create(c: &mut AsyncPgConnection, new_news: NewNews) -> QueryResult<News> {
         diesel::insert_into(news::table)
             .values(new_news)

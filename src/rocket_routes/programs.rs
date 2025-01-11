@@ -2,7 +2,8 @@ use crate::errors::server_error;
 use crate::models::program::{NewProgram, UpdateProgram};
 use crate::repositories::image::ImageRepository;
 use crate::repositories::program::ProgramRepository;
-use crate::utils::program_form_config::{ProgramFormConfig, ProgramFormData};
+use crate::utils::form_data::{FormData, FromFormData};
+use crate::utils::form_fields::FormConfig;
 
 use super::DbConn;
 
@@ -40,27 +41,26 @@ pub async fn create_program<'a>(
     content_type: &'a ContentType,
     data: Data<'a>,
 ) -> Result<Value, Custom<Value>> {
-    let config = ProgramFormConfig::new();
+    let config = FormConfig::<NewProgram>::new();
 
-    let form_data = ProgramFormData::from_multipart(content_type, data, &config).await?;
+    let form_data = FormData::from_multipart(content_type, data, &config).await?;
 
-    println!("{:?}", form_data.text);
-    println!("{:?}", form_data.title);
-    println!("{:?}", form_data.event_id);
-
-    let image = ImageRepository::new()
-        .await
-        .map_err(|e| server_error(e.into()))?
-        .save_image(&mut db, form_data.image_field)
+    let repo = ImageRepository::new()
         .await
         .map_err(|e| server_error(e.into()))?;
 
-    let new_program = NewProgram {
-        title: form_data.title,
-        text: form_data.text,
-        event_id: form_data.event_id,
-        image_id: image.id,
+    let image_id = if let Some(image_data) = form_data.image_field.clone() {
+        let image = repo
+            .save_image(&mut db, image_data)
+            .await
+            .map_err(|e| server_error(e.into()))?;
+        Some(image.id)
+    } else {
+        None
     };
+
+    let mut new_program = NewProgram::from_form_data(form_data).unwrap();
+    new_program.image_id = image_id.unwrap_or_default();
 
     ProgramRepository::create_program_for_event(&mut db, new_program)
         .await
@@ -75,9 +75,8 @@ pub async fn update_program<'a>(
     content_type: &'a ContentType,
     data: Data<'a>,
 ) -> Result<Value, Custom<Value>> {
-    let config = ProgramFormConfig::new();
-
-    let form_data = ProgramFormData::from_multipart(content_type, data, &config).await?;
+    let config = FormConfig::<UpdateProgram>::new();
+    let form_data = FormData::from_multipart(content_type, data, &config).await?;
 
     let repo = ImageRepository::new()
         .await
@@ -85,16 +84,18 @@ pub async fn update_program<'a>(
 
     // erase the old image
 
-    let image = repo
-        .save_image(&mut db, form_data.image_field)
-        .await
-        .map_err(|e| server_error(e.into()))?;
-
-    let update_program = UpdateProgram {
-        title: Some(form_data.title),
-        text: Some(form_data.text),
-        image_id: Some(image.id),
+    let image_id = if let Some(image_data) = form_data.image_field.clone() {
+        let image = repo
+            .save_image(&mut db, image_data)
+            .await
+            .map_err(|e| server_error(e.into()))?;
+        Some(image.id)
+    } else {
+        None
     };
+
+    let mut update_program = UpdateProgram::from_form_data(form_data)?;
+    update_program.image_id = image_id;
 
     ProgramRepository::update(&mut db, id, update_program)
         .await

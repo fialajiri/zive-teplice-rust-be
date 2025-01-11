@@ -3,7 +3,7 @@ use diesel_async::{AsyncPgConnection, RunQueryDsl};
 
 use crate::models::image::{Image, NewImage};
 use crate::schema::images;
-use crate::utils::program_form_config::ImageFormData;
+use crate::utils::form_fields::ImageFormData;
 use crate::utils::s3_storage::S3Storage;
 
 

@@ -29,6 +29,21 @@ pub struct User {
     pub updated_at: NaiveDateTime,
 }
 
+#[derive(Insertable)]
+#[table_name = "users"]
+pub struct NewUser {
+    pub username: String,
+    pub email: String,
+    pub password: String,
+    pub phone_number: String,
+    pub description: String,
+    pub role: UserRole,
+    pub user_type: UserType,
+    pub request: RequestStatus,
+    pub event_id: Option<i32>,
+    pub image_id: i32,
+}
+
 #[derive(AsExpression, Debug, FromSqlRow, Serialize, Deserialize)]
 #[diesel(sql_type = Text)]
 pub enum UserRole {
