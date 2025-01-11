@@ -41,7 +41,6 @@ impl<'a> ProgramFormConfig<'a> {
     }
 }
 
-// Helper struct to parse and validate form data
 #[derive(Debug)]
 pub struct ProgramFormData {
     pub title: String,

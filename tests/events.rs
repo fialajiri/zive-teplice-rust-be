@@ -6,17 +6,16 @@ pub mod common;
 #[test]
 fn test_create_event() {
     let client = Client::new();
-    
 
     let response = client
-    .post(format!("{}/events", common::APP_HOST))
-    .json(&json!({            
-        "title": "My New Event",
-        "year": 2025,
-        "is_current": true
-       }))
-    .send()
-    .unwrap();
+        .post(format!("{}/events", common::APP_HOST))
+        .json(&json!({
+         "title": "My New Event",
+         "year": 2025,
+         "is_current": true
+        }))
+        .send()
+        .unwrap();
 
     assert_eq!(response.status(), StatusCode::CREATED);
 
@@ -49,8 +48,6 @@ fn test_get_event() {
     );
 
     common::delete_test_event(&client, event);
-
-
 }
 
 #[test]
@@ -64,7 +61,7 @@ fn test_update_event() {
             "id": event["id"],
             "title": "My Updated Event",
             "year": 2026,
-            "is_current": false,          
+            "is_current": false,
         }))
         .send()
         .unwrap();
@@ -84,6 +81,54 @@ fn test_update_event() {
         })
     );
 
+    common::delete_test_event(&client, event);
+}
+
+#[test]
+fn test_create_event_with_program() {
+    let client = Client::new();
+    let event = common::create_test_event(&client);
+    let program = common::create_test_program_for_event(&client, &event);
+
+    assert_eq!(program["event_id"], event["id"]);
+
+    common::delete_test_program(&client, program);
+
+    common::delete_test_event(&client, event);
+}
+
+#[test]
+fn test_get_event_with_program() {
+    let client = Client::new();
+    let (event, program) = common::create_test_event_with_program(&client);
+
+    let response = client
+        .get(format!(
+            "{}/events/{}/with_program",
+            common::APP_HOST,
+            event["id"]
+        ))
+        .send()
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let event_with_program: Value = response.json().unwrap();
+    assert_eq!(
+        event_with_program,
+        json!({
+            "event_id": event["id"],
+            "event_title": event["title"],
+            "year": event["year"],
+            "is_current": event["is_current"],
+            "program_title": program["title"],
+            "program_text": program["text"],
+            "program_image_id": program["image_id"]
+
+        })
+    );
+
+    common::delete_test_program(&client, program);
     common::delete_test_event(&client, event);
 }
 

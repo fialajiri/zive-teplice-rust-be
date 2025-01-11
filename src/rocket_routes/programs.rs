@@ -44,6 +44,10 @@ pub async fn create_program<'a>(
 
     let form_data = ProgramFormData::from_multipart(content_type, data, &config).await?;
 
+    println!("{:?}", form_data.text);
+    println!("{:?}", form_data.title);
+    println!("{:?}", form_data.event_id);
+
     let image = ImageRepository::new()
         .await
         .map_err(|e| server_error(e.into()))?

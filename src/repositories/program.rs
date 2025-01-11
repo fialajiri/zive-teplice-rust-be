@@ -31,7 +31,7 @@ impl ProgramRepository {
             .await
     }
 
-    pub async fn update(c: &mut AsyncPgConnection, id: i32, program: UpdateProgram) -> QueryResult<Program> {
+    pub async fn update(c: &mut AsyncPgConnection, id: i32, program: UpdateProgram) -> QueryResult<Program> {       
         diesel::update(programs::table.find(id))
             .set((
                 programs::title.eq(program.title.unwrap_or_default()),
