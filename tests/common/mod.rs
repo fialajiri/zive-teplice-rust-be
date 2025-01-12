@@ -82,3 +82,12 @@ pub fn delete_test_program(client: &Client, program: Value) {
 
     assert_eq!(response.status(), StatusCode::NO_CONTENT);
 }
+
+pub fn delete_test_news(client: &Client, news: Value) {
+    let response = client
+        .delete(format!("{}/news/{}", APP_HOST, news["id"]))
+        .send()
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::NO_CONTENT);
+}

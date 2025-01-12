@@ -23,6 +23,9 @@ async fn main() {
                 rocket_routes::programs::delete_program,
                 rocket_routes::programs::update_program,
                 rocket_routes::news::get_news,
+                rocket_routes::news::get_all_news,
+                rocket_routes::news::create_news,
+                rocket_routes::news::delete_news,
             ],
         )
         .attach(rocket_routes::DbConn::init())
