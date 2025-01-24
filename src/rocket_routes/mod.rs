@@ -7,6 +7,7 @@ use rocket::{Request, Response};
 pub mod events;
 pub mod programs;
 pub mod news;
+pub mod gallery;
 
 #[derive(rocket_db_pools::Database)]
 #[database("postgres")]

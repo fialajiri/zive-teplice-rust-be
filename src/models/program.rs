@@ -57,7 +57,7 @@ impl FromFormData for NewProgram {
 }
 
 
-#[derive(Insertable, Deserialize)]
+#[derive(Insertable, Deserialize, AsChangeset)]
 #[diesel(table_name = programs)]
 pub struct UpdateProgram {   
     pub title: Option<String>,

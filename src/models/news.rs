@@ -46,3 +46,34 @@ impl FromFormData for NewNews {
         })
     }
 }
+
+
+#[derive(AsChangeset, Insertable, Deserialize, Debug)]
+#[diesel(table_name = news)]
+pub struct UpdateNews {
+    pub title: Option<String>,
+    pub message: Option<String>,
+    pub image_id: Option<i32>,
+}
+
+impl FormFields for UpdateNews {
+    fn get_optional_text_fields() -> Vec<&'static str> {
+        vec!["title", "message"]
+    }
+    fn has_image() -> bool {
+        true
+    }
+    fn is_image_required() -> bool {
+        false
+    }    
+}
+
+impl FromFormData for UpdateNews {
+    fn from_form_data(form_data: FormData) -> Result<Self, Custom<Value>> {
+        Ok(Self {
+            title: form_data.optional_text_values.get("title").cloned().flatten(),
+            message: form_data.optional_text_values.get("message").cloned().flatten(),
+            image_id: None
+        })
+    }
+}

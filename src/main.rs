@@ -25,7 +25,13 @@ async fn main() {
                 rocket_routes::news::get_news,
                 rocket_routes::news::get_all_news,
                 rocket_routes::news::create_news,
+                rocket_routes::news::update_news,
                 rocket_routes::news::delete_news,
+                rocket_routes::gallery::get_gallery,
+                rocket_routes::gallery::get_all_galleries,
+                rocket_routes::gallery::create_gallery,
+                //rocket_routes::gallery::update_gallery,
+                rocket_routes::gallery::delete_gallery,
             ],
         )
         .attach(rocket_routes::DbConn::init())

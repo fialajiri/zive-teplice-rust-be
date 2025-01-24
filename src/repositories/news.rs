@@ -1,7 +1,7 @@
 use diesel::prelude::*;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 
-use crate::models::news::{NewNews, News};
+use crate::models::news::{NewNews, News, UpdateNews};
 use crate::schema::news;
 
 pub struct NewsRepository;
@@ -22,15 +22,11 @@ impl NewsRepository {
             .await
     }
 
-    pub async fn update(c: &mut AsyncPgConnection, id: i32, news: News) -> QueryResult<News> {
+    pub async fn update(c: &mut AsyncPgConnection, id: i32, news: UpdateNews) -> QueryResult<News> {
         diesel::update(news::table.find(id))
-            .set((
-                news::title.eq(news.title),
-                news::message.eq(news.message),
-                news::image_id.eq(news.image_id),
-            ))
-            .get_result(c)
-            .await
+        .set(&news)
+        .get_result(c)
+        .await
     }
 
     pub async fn delete(c: &mut AsyncPgConnection, id: i32) -> QueryResult<usize> {

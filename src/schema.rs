@@ -17,7 +17,7 @@ diesel::table! {
         id -> Int4,
         #[max_length = 256]
         name -> Varchar,
-        featured_image_id -> Nullable<Int4>,
+        featured_image_id -> Int4,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }

@@ -34,21 +34,18 @@ pub fn create_test_program_for_event(client: &Client, event: &Value) -> Value {
         .mime_str("image/jpeg")
         .expect("Failed to create part");
 
-    // Build multipart form data
     let form = multipart::Form::new()
         .text("title", "Test Program Title")
         .text("text", "Some program text")
         .text("event_id", event["id"].as_i64().unwrap().to_string())
         .part("image", part);
 
-    // Send the request
     let response = client
         .post(format!("{}/programs", common::APP_HOST))
         .multipart(form)
         .send()
         .expect("Failed to send request");
 
-    // Check status code
     assert_eq!(
         response.status(),
         StatusCode::OK,
@@ -56,6 +53,33 @@ pub fn create_test_program_for_event(client: &Client, event: &Value) -> Value {
     );
 
     response.json().unwrap()
+}
+
+pub fn create_test_news(client: &Client) -> Value {
+    let mut file = File::open("./tests/assets/test_image.jpg").expect("Failed to open file");
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer).expect("Failed to read file");
+
+    let part = multipart::Part::bytes(buffer)
+        .file_name("test.image.jpg")
+        .mime_str("image/jpeg")
+        .expect("Failed to create part");
+
+    let form = multipart::Form::new()
+        .text("title", "Test News Title")
+        .text("message", "This is great news")
+        .part("image", part);
+
+    let response = client
+        .post(format!("{}/news", APP_HOST))
+        .multipart(form)
+        .send()
+        .expect("Failed to send request");
+
+    assert_eq!(response.status(), StatusCode::OK, "Response was not 200 OK");
+
+    response.json().unwrap()
+
 }
 
 pub fn create_test_event_with_program(client: &Client) -> (Value, Value) {

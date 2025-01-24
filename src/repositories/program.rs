@@ -31,15 +31,12 @@ impl ProgramRepository {
             .await
     }
 
-    pub async fn update(c: &mut AsyncPgConnection, id: i32, program: UpdateProgram) -> QueryResult<Program> {       
+    pub async fn update(c: &mut AsyncPgConnection, id: i32, program: UpdateProgram) -> QueryResult<Program> {    
         diesel::update(programs::table.find(id))
-            .set((
-                programs::title.eq(program.title.unwrap_or_default()),
-                programs::text.eq(program.text.unwrap_or_default()),               
-                programs::image_id.eq(program.image_id.unwrap_or_default()),
-            ))
-            .get_result(c)
-            .await
+        .set(&program)
+        .get_result(c)
+        .await   
+      
     }
 
     pub async fn delete(c: &mut AsyncPgConnection, id: i32) -> QueryResult<usize> {
