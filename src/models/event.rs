@@ -23,10 +23,10 @@ pub struct EventWithProgram {
     pub event_id: i32,
     pub event_title: String,
     pub year: i32,
-    pub is_current: bool,  
+    pub is_current: bool,
     pub program_title: Option<String>,
     pub program_text: Option<String>,
-    pub program_image_id: Option<i32>,    
+    pub program_image_id: Option<i32>,
 }
 
 #[derive(Insertable, Deserialize)]

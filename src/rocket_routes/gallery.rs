@@ -61,7 +61,10 @@ pub async fn create_gallery<'a>(
 }
 
 #[rocket::delete("/gallery/<id>")]
-pub async fn delete_gallery<'a>(mut db: Connection<DbConn>, id: i32) -> Result<rocket::response::status::NoContent, Custom<Value>>  {
+pub async fn delete_gallery<'a>(
+    mut db: Connection<DbConn>,
+    id: i32,
+) -> Result<rocket::response::status::NoContent, Custom<Value>> {
     GalleryRepository::delete(&mut db, id)
         .await
         .map(|_| rocket::response::status::NoContent)

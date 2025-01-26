@@ -1,6 +1,6 @@
 use ::std::error::Error;
-use rocket::response::status::Custom;
 use rocket::http::Status;
+use rocket::response::status::Custom;
 use rocket::serde::json::{json, Value};
 
 pub fn server_error(e: Box<dyn Error>) -> Custom<Value> {

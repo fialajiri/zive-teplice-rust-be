@@ -24,9 +24,9 @@ impl NewsRepository {
 
     pub async fn update(c: &mut AsyncPgConnection, id: i32, news: UpdateNews) -> QueryResult<News> {
         diesel::update(news::table.find(id))
-        .set(&news)
-        .get_result(c)
-        .await
+            .set(&news)
+            .get_result(c)
+            .await
     }
 
     pub async fn delete(c: &mut AsyncPgConnection, id: i32) -> QueryResult<usize> {

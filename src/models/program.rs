@@ -1,9 +1,9 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use rocket::response::status::Custom;
+use rocket::serde::json::Value;
 use serde::Deserialize;
 use serde::Serialize;
-use rocket::serde::json::Value;
-use rocket::response::status::Custom;
 
 use crate::schema::programs;
 use crate::utils::form_data::FormData;
@@ -56,17 +56,13 @@ impl FromFormData for NewProgram {
     }
 }
 
-
 #[derive(Insertable, Deserialize, AsChangeset)]
 #[diesel(table_name = programs)]
-pub struct UpdateProgram {   
+pub struct UpdateProgram {
     pub title: Option<String>,
-    pub text: Option<String>,   
+    pub text: Option<String>,
     pub image_id: Option<i32>,
 }
-
-
-
 
 impl FormFields for UpdateProgram {
     fn get_optional_text_fields() -> Vec<&'static str> {
@@ -83,8 +79,16 @@ impl FormFields for UpdateProgram {
 impl FromFormData for UpdateProgram {
     fn from_form_data(form_data: FormData) -> Result<Self, Custom<Value>> {
         Ok(Self {
-            title: form_data.optional_text_values.get("title").cloned().flatten(),
-            text: form_data.optional_text_values.get("text").cloned().flatten(),
+            title: form_data
+                .optional_text_values
+                .get("title")
+                .cloned()
+                .flatten(),
+            text: form_data
+                .optional_text_values
+                .get("text")
+                .cloned()
+                .flatten(),
             image_id: None, // Will be set after image upload if present
         })
     }

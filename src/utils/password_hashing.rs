@@ -1,7 +1,7 @@
+use data_encoding::HEXLOWER;
 use rand::RngCore;
 use ring::pbkdf2;
 use std::num::NonZeroU32;
-use data_encoding::HEXLOWER;
 
 const NUMBER_OF_ITERATIONS: u32 = 25000;
 const KEYLEN: usize = 512;
@@ -13,7 +13,7 @@ impl Password {
         let mut salt = [0u8; 32];
         rand::thread_rng().fill_bytes(&mut salt);
         let salt_hex = HEXLOWER.encode(&salt);
-        
+
         let mut hash = vec![0u8; KEYLEN];
         pbkdf2::derive(
             pbkdf2::PBKDF2_HMAC_SHA256,
@@ -22,7 +22,7 @@ impl Password {
             password.as_bytes(),
             &mut hash,
         );
-        
+
         let hash_hex = HEXLOWER.encode(&hash);
         format!("{}.{}", hash_hex, salt_hex)
     }
@@ -35,7 +35,7 @@ impl Password {
 
         let hash_hex = parts[0];
         let salt_hex = parts[1];
-        
+
         let salt = match HEXLOWER.decode(salt_hex.as_bytes()) {
             Ok(s) => s,
             Err(_) => return false,
@@ -49,7 +49,7 @@ impl Password {
             supplied_password.as_bytes(),
             &mut hash,
         );
-        
+
         let verify_hex = HEXLOWER.encode(&hash);
         hash_hex == verify_hex
     }

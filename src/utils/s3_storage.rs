@@ -51,7 +51,11 @@ impl S3Storage {
         })
     }
 
-    pub async fn upload_image(&self, raw_data: &[u8], filename: &str) -> Result<UploadedImage, String> {
+    pub async fn upload_image(
+        &self,
+        raw_data: &[u8],
+        filename: &str,
+    ) -> Result<UploadedImage, String> {
         println!("Uploading image to S3: {}", filename);
 
         let byte_stream = ByteStream::from(raw_data.to_vec());
@@ -59,8 +63,8 @@ impl S3Storage {
             .extension()
             .and_then(|ext| ext.to_str())
             .unwrap_or("jpg");
-            
-            let key = format!("uploads/{}.{}", uuid::Uuid::new_v4(), extension);
+
+        let key = format!("uploads/{}.{}", uuid::Uuid::new_v4(), extension);
 
         match self
             .client
@@ -84,14 +88,13 @@ impl S3Storage {
         }
     }
 
-    
+    pub async fn upload_multiple_images(&self, images: Vec<(&[u8], String)>) -> UploadResult {
+        let mut handles: Vec<
+            tokio::task::JoinHandle<
+                Result<(String, Result<UploadedImage, String>), tokio::task::JoinError>,
+            >,
+        > = Vec::with_capacity(images.len());
 
-pub async fn upload_multiple_images(
-        &self,
-        images: Vec<(&[u8], String)>,
-    ) -> UploadResult {
-        let mut handles: Vec<tokio::task::JoinHandle<Result<(String, Result<UploadedImage, String>), tokio::task::JoinError>>> = Vec::with_capacity(images.len());
-        
         // Start all uploads concurrently
         for (data, filename) in images {
             let data = data.to_vec(); // Clone the data for each task
@@ -113,21 +116,16 @@ pub async fn upload_multiple_images(
         // Collect results
         for handle in handles {
             match handle.await {
-                Ok(Ok((filename, result))) => {
-                    match result {
-                        Ok(uploaded) => successful.push(uploaded),
-                        Err(error) => failed.push((filename, error)),
-                    }
+                Ok(Ok((filename, result))) => match result {
+                    Ok(uploaded) => successful.push(uploaded),
+                    Err(error) => failed.push((filename, error)),
                 },
                 Ok(Err(e)) => failed.push(("unknown".to_string(), e.to_string())),
                 Err(e) => failed.push(("unknown".to_string(), format!("Task failed: {}", e))),
             }
         }
 
-        UploadResult {
-            successful,
-            failed,
-        }
+        UploadResult { successful, failed }
     }
 
     pub async fn delete_image(&self, key: &str) -> Result<(), String> {
@@ -146,13 +144,11 @@ pub async fn upload_multiple_images(
 
     pub async fn delete_multiple_images(&self, keys: Vec<String>) -> Result<(), String> {
         let mut handles = Vec::with_capacity(keys.len());
-        
+
         for key in keys {
             handles.push(tokio::spawn({
                 let self_clone = self.clone();
-                async move {
-                    self_clone.delete_image(&key).await
-                }
+                async move { self_clone.delete_image(&key).await }
             }));
         }
 

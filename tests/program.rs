@@ -1,8 +1,8 @@
 use std::fs::File;
 use std::io::Read;
 
-use reqwest::StatusCode;
 use reqwest::blocking::{multipart, Client};
+use reqwest::StatusCode;
 use serde_json::{json, Value};
 
 pub mod common;
@@ -39,7 +39,7 @@ fn test_create_program() {
     assert_eq!(response.status(), StatusCode::OK, "Response was not 200 OK");
 
     // Deserialize JSON
-    let program: Value = response.json().expect("Failed to parse JSON response");   
+    let program: Value = response.json().expect("Failed to parse JSON response");
 
     assert_eq!(
         program,
@@ -157,7 +157,11 @@ fn test_delete_program() {
         .send()
         .expect("Failed to send request");
 
-    assert_eq!(response.status(), StatusCode::NO_CONTENT, "Response was not 204 No Content");
+    assert_eq!(
+        response.status(),
+        StatusCode::NO_CONTENT,
+        "Response was not 204 No Content"
+    );
 
     common::delete_test_event(&client, event);
 }

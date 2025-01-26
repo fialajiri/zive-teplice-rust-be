@@ -35,7 +35,7 @@ async fn main() {
             ],
         )
         .attach(rocket_routes::DbConn::init())
-        .attach(rocket_routes::Cors)       
+        .attach(rocket_routes::Cors)
         .launch()
         .await;
 }

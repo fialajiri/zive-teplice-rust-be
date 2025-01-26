@@ -79,7 +79,6 @@ pub fn create_test_news(client: &Client) -> Value {
     assert_eq!(response.status(), StatusCode::OK, "Response was not 200 OK");
 
     response.json().unwrap()
-
 }
 
 pub fn create_test_event_with_program(client: &Client) -> (Value, Value) {

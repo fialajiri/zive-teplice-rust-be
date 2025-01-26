@@ -1,11 +1,9 @@
 use chrono::NaiveDateTime;
-use serde::Deserialize;
 use diesel::prelude::*;
+use serde::Deserialize;
 use serde::Serialize;
 
 use crate::schema::images;
-
-
 
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 pub struct Image {
@@ -13,7 +11,7 @@ pub struct Image {
     pub image_url: String,
     pub image_key: String,
     pub width: i32,
-    pub height: i32,   
+    pub height: i32,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }

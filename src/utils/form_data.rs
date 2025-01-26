@@ -31,30 +31,26 @@ impl FormData {
         let mut required_number_values = HashMap::new();
         let mut optional_number_values = HashMap::new();
 
-        
         for field_name in T::get_required_text_fields() {
             let value = Self::get_required_text_field(&form, field_name)?;
             required_text_values.insert(field_name.to_string(), value);
         }
 
-       
         for field_name in T::get_optional_text_fields() {
             let value = Self::get_optional_text_field(&form, field_name)?;
             optional_text_values.insert(field_name.to_string(), value);
         }
 
-       
         for field_name in T::get_required_number_fields() {
             let value = Self::get_required_number_field(&form, field_name)?;
             required_number_values.insert(field_name.to_string(), value);
         }
 
-       
         for field_name in T::get_optional_number_fields() {
             let value = Self::get_optional_number_field(&form, field_name)?;
             optional_number_values.insert(field_name.to_string(), value);
         }
-        
+
         let image_field = if T::has_image() {
             match Self::get_image_field(&form) {
                 Ok(image) => Some(image),
@@ -82,7 +78,9 @@ impl FormData {
             .get(field_name)
             .and_then(|fields| fields.first())
             .map(|field| field.text.clone())
-            .ok_or_else(|| bad_request_error(format!("Missing required field: {}", field_name).into()))
+            .ok_or_else(|| {
+                bad_request_error(format!("Missing required field: {}", field_name).into())
+            })
     }
 
     fn get_optional_text_field(
@@ -115,10 +113,9 @@ impl FormData {
                 if value.is_empty() {
                     Ok(None)
                 } else {
-                    value
-                        .parse()
-                        .map(Some)
-                        .map_err(|e| bad_request_error(format!("Invalid {}: {}", field_name, e).into()))
+                    value.parse().map(Some).map_err(|e| {
+                        bad_request_error(format!("Invalid {}: {}", field_name, e).into())
+                    })
                 }
             }
             _ => Ok(None),

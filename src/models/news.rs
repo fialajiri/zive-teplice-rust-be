@@ -47,7 +47,6 @@ impl FromFormData for NewNews {
     }
 }
 
-
 #[derive(AsChangeset, Insertable, Deserialize, Debug)]
 #[diesel(table_name = news)]
 pub struct UpdateNews {
@@ -65,15 +64,23 @@ impl FormFields for UpdateNews {
     }
     fn is_image_required() -> bool {
         false
-    }    
+    }
 }
 
 impl FromFormData for UpdateNews {
     fn from_form_data(form_data: FormData) -> Result<Self, Custom<Value>> {
         Ok(Self {
-            title: form_data.optional_text_values.get("title").cloned().flatten(),
-            message: form_data.optional_text_values.get("message").cloned().flatten(),
-            image_id: None
+            title: form_data
+                .optional_text_values
+                .get("title")
+                .cloned()
+                .flatten(),
+            message: form_data
+                .optional_text_values
+                .get("message")
+                .cloned()
+                .flatten(),
+            image_id: None,
         })
     }
 }

@@ -1,9 +1,9 @@
 use chrono::NaiveDateTime;
-use serde::Deserialize;
 use diesel::prelude::*;
-use serde::Serialize;
 use rocket::response::status::Custom;
 use rocket::serde::json::Value;
+use serde::Deserialize;
+use serde::Serialize;
 
 use crate::models::image::Image;
 use crate::schema::{galleries, gallery_images};
@@ -14,7 +14,7 @@ use crate::utils::form_fields::FormFields;
 #[diesel(table_name = galleries)]
 pub struct Gallery {
     pub id: i32,
-    pub name: String,  
+    pub name: String,
     pub featured_image_id: i32,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
@@ -23,7 +23,7 @@ pub struct Gallery {
 #[derive(Insertable, Deserialize)]
 #[diesel(table_name = galleries)]
 pub struct NewGallery {
-    pub name: String,   
+    pub name: String,
     pub featured_image_id: i32,
 }
 
@@ -67,12 +67,15 @@ impl FormFields for UpdateGallery {
 impl FromFormData for UpdateGallery {
     fn from_form_data(form_data: FormData) -> Result<Self, Custom<Value>> {
         Ok(Self {
-            name: form_data.optional_text_values.get("name").cloned().flatten(),
+            name: form_data
+                .optional_text_values
+                .get("name")
+                .cloned()
+                .flatten(),
             featured_image_id: None,
         })
     }
 }
-
 
 #[derive(Queryable, Associations, Identifiable, Debug)]
 #[diesel(belongs_to(Gallery))]

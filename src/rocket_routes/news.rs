@@ -85,7 +85,7 @@ pub async fn update_news<'a>(
     };
 
     let mut update_news = UpdateNews::from_form_data(form_data).unwrap();
-   
+
     if let Some(image_id) = image_id {
         update_news.image_id = Some(image_id);
     }
@@ -98,11 +98,11 @@ pub async fn update_news<'a>(
         .map_err(|e| server_error(e.into()))
 }
 
-
-
-
 #[rocket::delete("/news/<id>")]
-pub async fn delete_news<'a>(mut db: Connection<DbConn>, id: i32) -> Result<rocket::response::status::NoContent, Custom<Value>> {
+pub async fn delete_news<'a>(
+    mut db: Connection<DbConn>,
+    id: i32,
+) -> Result<rocket::response::status::NoContent, Custom<Value>> {
     NewsRepository::delete(&mut db, id)
         .await
         .map(|_| rocket::response::status::NoContent)

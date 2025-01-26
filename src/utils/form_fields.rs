@@ -44,7 +44,7 @@ impl<'a, T: FormFields> FormConfig<'a, T> {
 
     pub fn get_options(&self) -> MultipartFormDataOptions<'a> {
         let mut fields = Vec::new();
-        
+
         if T::has_image() {
             fields.push(
                 MultipartFormDataField::raw("image")
@@ -53,22 +53,19 @@ impl<'a, T: FormFields> FormConfig<'a, T> {
                     .unwrap(),
             );
         }
-        
+
         for field_name in T::get_required_text_fields() {
             fields.push(MultipartFormDataField::text(field_name));
         }
 
-       
         for field_name in T::get_optional_text_fields() {
             fields.push(MultipartFormDataField::text(field_name));
         }
 
-       
         for field_name in T::get_required_number_fields() {
             fields.push(MultipartFormDataField::text(field_name));
         }
 
-        
         for field_name in T::get_optional_number_fields() {
             fields.push(MultipartFormDataField::text(field_name));
         }
