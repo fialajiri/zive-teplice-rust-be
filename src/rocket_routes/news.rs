@@ -5,6 +5,7 @@ use crate::repositories::image::ImageRepository;
 use crate::repositories::news::NewsRepository;
 use crate::utils::form_data::{FormData, FromFormData};
 use crate::utils::form_fields::FormConfig;
+use diesel::result::Error;
 use rocket::http::ContentType;
 use rocket::{
     response::status::Custom,
@@ -85,17 +86,29 @@ pub async fn update_news<'a>(
     };
 
     let mut update_news = UpdateNews::from_form_data(form_data).unwrap();
-
     if let Some(image_id) = image_id {
         update_news.image_id = Some(image_id);
     }
 
-    println!("{:?}", update_news);
+    let result = db
+        .build_transaction()
+        .run(|conn| {
+            Box::pin(async move {
+                let old_news = NewsRepository::find(conn, id).await?;
 
-    NewsRepository::update(&mut db, id, update_news)
+                let updated_news = NewsRepository::update(conn, id, update_news).await?;
+
+                if image_id.is_some() {
+                    repo.delete_image(conn, old_news.image_id).await?;
+                }
+
+                Ok::<_, Error>(updated_news)
+            })
+        })
         .await
-        .map(|news| json!(news))
-        .map_err(|e| server_error(e.into()))
+        .map_err(|e| server_error(e.into()))?;
+
+    Ok(json!(result))
 }
 
 #[rocket::delete("/news/<id>")]
@@ -103,7 +116,23 @@ pub async fn delete_news<'a>(
     mut db: Connection<DbConn>,
     id: i32,
 ) -> Result<rocket::response::status::NoContent, Custom<Value>> {
-    NewsRepository::delete(&mut db, id)
+    let repo = ImageRepository::new()
+        .await
+        .map_err(|e| server_error(e.into()))?;
+
+    db.build_transaction()
+        .run(|conn| {
+            Box::pin(async move {
+                let news = NewsRepository::find(conn, id).await?;
+                let image_id = news.image_id;
+
+                NewsRepository::delete(conn, id).await?;
+
+                repo.delete_image(conn, image_id).await?;
+
+                Ok::<_, Error>(())
+            })
+        })
         .await
         .map(|_| rocket::response::status::NoContent)
         .map_err(|e| server_error(e.into()))

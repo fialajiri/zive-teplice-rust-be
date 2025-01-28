@@ -1,6 +1,3 @@
-use std::fs::File;
-use std::io::Read;
-
 use reqwest::blocking::{multipart, Client};
 use reqwest::StatusCode;
 use serde_json::{json, Value};
@@ -12,9 +9,7 @@ fn test_create_program() {
     let client = Client::new();
     let event = common::create_test_event(&client);
 
-    let mut file = File::open("./tests/assets/test_image.jpg").expect("Failed to open file");
-    let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer).expect("Failed to read file");
+    let buffer = common::load_test_image();
 
     let part = multipart::Part::bytes(buffer)
         .file_name("test.image.jpg")
@@ -101,9 +96,7 @@ fn test_update_program() {
     let event = common::create_test_event(&client);
     let program = common::create_test_program_for_event(&client, &event);
 
-    let mut file = File::open("./tests/assets/test_image.jpg").expect("Failed to open file");
-    let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer).expect("Failed to read file");
+    let buffer = common::load_test_image();
 
     let part = multipart::Part::bytes(buffer)
         .file_name("test.image.jpg")

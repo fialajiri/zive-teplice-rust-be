@@ -11,9 +11,7 @@ pub mod common;
 fn test_create_news() {
     let client = Client::new();
 
-    let mut file = File::open("./tests/assets/test_image.jpg").expect("Failed to open file");
-    let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer).expect("Failed to read file");
+    let buffer = common::load_test_image();
 
     let part = multipart::Part::bytes(buffer)
         .file_name("test.image.jpg")
@@ -130,8 +128,8 @@ fn test_update_news() {
         })
     );
 
-    // change only image
-    let mut file = File::open("./tests/assets/test_image.jpg").expect("Failed to open file");
+    // change the image
+    let mut file = File::open("./tests/assets/black-widow.jpg").expect("Failed to open file");
     let mut buffer = Vec::new();
     file.read_to_end(&mut buffer).expect("Failed to read file");
 
@@ -155,7 +153,7 @@ fn test_update_news() {
     // assert that the image_id has changed
     assert_ne!(old_news["image_id"], news["image_id"]);
 
-    common::delete_test_news(&client, news);
+    //common::delete_test_news(&client, news);
 }
 
 #[test]
